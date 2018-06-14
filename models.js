@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose');
 
-const postsSchema = mongoose.Schema({
+const postSchema = mongoose.Schema({
   title: {type: String, required: true},
   author: {
     firstName: {type: String, required: true},
@@ -11,11 +11,11 @@ const postsSchema = mongoose.Schema({
   content: {type: String, required: true}
 });
 
-postsSchema.virtual('authorFullName').get(function() {
+postSchema.virtual('authorFullName').get(function() {
   return this.author.firstName + ' ' + this.author.lastName;
 });
 
-postsSchema.methods.serialize = function() {
+postSchema.methods.serialize = function() {
   return {
     id: this._id,
     title: this.title,
@@ -23,3 +23,7 @@ postsSchema.methods.serialize = function() {
     content: this.content
   }
 }
+
+const Post = mongoose.model('Post', postSchema);
+
+module.exports = { Post };
