@@ -1,11 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const { PORT, DATABASE_URL } = require('./config');
 const { Post } = require ('./models');
 
 mongoose.Promise = global.Promise;
 
 const app = express();
+const jsonParser = bodyParser.json();
 
 app.get('/posts', (req, res) => {
   Post
@@ -27,13 +29,40 @@ app.get('/posts/:id', (req, res) => {
     .findById(req.params.id)
     .then(post => {
       if(post === null) {
-        res.status(404).send('post not found');
+        res.status(404).json({message: 'Post not found'});
       } else {
         res.json(post.serialize())
       }
     })
     .catch(err => {
-      console.log(err);
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
+
+app.post('/posts', jsonParser, (req, res) => {
+  const requiredFields = ['title', 'author', 'content'];
+  for(let i = 0; i < requiredFields.length; i++) {
+    const field = requiredFields[i];
+    if(!(field in req.body)) {
+      const message = `Missing ${field} in request body`;
+      console.error(message);
+      res.status(400).send(message);
+    }
+  }
+
+  Post
+    .create({
+      title: req.body.title,
+      author: {
+        firstName: req.body.author.firstName,
+        lastName: req.body.author.lastName
+      },
+      content: req.body.content
+    })
+    .then(post => res.status(201).json(post.serialize()))
+    .catch(err => {
+      console.error(err);
       res.status(500).json({message: 'Internal server error'});
     });
 });
