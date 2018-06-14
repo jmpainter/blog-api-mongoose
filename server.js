@@ -67,6 +67,42 @@ app.post('/posts', jsonParser, (req, res) => {
     });
 });
 
+app.put('/posts/:id', jsonParser, (req, res) => {
+  if(req.body.id !== req.params.id) {
+    const message = `Request path id ${req.params.id} and request body id ${req.body.id} must match`;
+    console.error(message);
+    return res.status(400).json({message: message});
+  }
+
+  Post
+    .findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true})
+    .then(post => res.status(200).json(post.serialize()))
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
+
+app.delete('/posts/:id', (req, res) => {
+  Post
+    .findByIdAndRemove(req.params.id)
+    .then(post => {
+      if(post === null) {
+        res.status(404).json({message: 'Not Found'});
+      } else {
+        res.status(204).end()
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    })
+});
+
+app.use('*', (req, res) => {
+  res.status(404).json({message: 'Not Found'});
+});
+
 let server;
 
 function runServer(databaseUrl, port = PORT) {
