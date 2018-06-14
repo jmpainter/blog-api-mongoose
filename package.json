@@ -2,7 +2,7 @@
   "name": "blog-api-mongoose",
   "version": "1.0.0",
   "description": "Blog api with mongoose and mongodb",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "test": "mocha --exit"
   },
