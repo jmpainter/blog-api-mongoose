@@ -1,13 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const {PORT, DATABASE_URL} = require('.config');
+const {BlogPosts} = require ('./models');
 
 mongoose.Promise = global.Promise;
 
-const {PORT, DATABASE_URL} = require('.config');
-
-const {BlogPosts} = require ('./models');
-
 const app = express();
+
+app.get('/posts', (req, res) => {
+  
+});
 
 let server;
 
