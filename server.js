@@ -57,11 +57,10 @@ app.post('/posts', jsonParser, (req, res) => {
   Post
     .create({
       title: req.body.title,
-      // author: {
-      //   firstName: req.body.author.firstName,
-      //   lastName: req.body.author.lastName
-      // },
-      author: req.body.author,
+      author: {
+        firstName: req.body.author.firstName,
+        lastName: req.body.author.lastName
+      },
       content: req.body.content,
       created: req.body.created
     })
