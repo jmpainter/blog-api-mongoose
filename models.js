@@ -8,7 +8,8 @@ const postSchema = mongoose.Schema({
     firstName: {type: String, required: true},
     lastName: {type: String, required: true}
   },
-  content: {type: String, required: true}
+  content: {type: String, required: true},
+  created: {type: Date, default: Date.now()}
 });
 
 postSchema.virtual('authorFullName').get(function() {
@@ -20,7 +21,8 @@ postSchema.methods.serialize = function() {
     id: this._id,
     title: this.title,
     author: this.authorFullName,
-    content: this.content
+    content: this.content,
+    created: this.created
   }
 }
 

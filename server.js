@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const { PORT, DATABASE_URL } = require('./config');
 const { Post } = require ('./models');
@@ -8,6 +9,8 @@ mongoose.Promise = global.Promise;
 
 const app = express();
 const jsonParser = bodyParser.json();
+
+app.use(morgan('common'));
 
 app.get('/posts', (req, res) => {
   Post
@@ -54,11 +57,13 @@ app.post('/posts', jsonParser, (req, res) => {
   Post
     .create({
       title: req.body.title,
-      author: {
-        firstName: req.body.author.firstName,
-        lastName: req.body.author.lastName
-      },
-      content: req.body.content
+      // author: {
+      //   firstName: req.body.author.firstName,
+      //   lastName: req.body.author.lastName
+      // },
+      author: req.body.author,
+      content: req.body.content,
+      created: req.body.created
     })
     .then(post => res.status(201).json(post.serialize()))
     .catch(err => {
