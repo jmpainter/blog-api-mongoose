@@ -78,8 +78,17 @@ app.put('/posts/:id', jsonParser, (req, res) => {
     return res.status(400).json({message: message});
   }
 
+  const toUpdate = {};
+  const updateableFields = ['title', 'author', 'content', 'created'];
+
+  updateableFields.forEach(field => {
+    if(field in req.body) {
+      toUpdate[field] = req.body[field];
+    }
+  })
+
   Post
-    .findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true})
+    .findByIdAndUpdate(req.params.id, {$set: toUpdate}, {new: true})
     .then(post => res.status(200).json(post.serialize()))
     .catch(err => {
       console.error(err);
