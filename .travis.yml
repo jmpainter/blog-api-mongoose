@@ -2,3 +2,11 @@ language: node_js
 node_js: node
 services:
 - mongodb
+deploy:
+  provider: heroku
+  api_key:
+    secure: J+bTuhwiCfuzeoidP94m9E4AZC+K0WfNwHZU6MCkuJqVVVm4DTb8jjOIgfV3odPqE/kZYwOmQ3s9X6azu3e7+fcWeY8rMRiSOrDYLp/hoK7D+yVt7TFdh5XTSJTlsihk4sLO+OPxThk3nBKFvP0fTMfHCgAEdbaIxsVscfvHm4bCKOY5SEfD5YkA87aGXQbAkDwxfNzBzX9abSDCqJ5skbKzF0ulhMHd9eYK5mjaBwBQwuci3CF4FRm2W2ueyC8t3KAod3oxIwBh1n5wJJygq+Niu4iTmw1NZUU7JiNZJ2EmEdUhwK5QN1tyRygSPXLTfKe1gXvJ6qws6kjgXhZjXQL2uEGrxxogi3y25BwIPhl4EgEwk67zUkT0oakM60gRT4kLte1ahLeV4eVzClurhiy4l6ARfJmkNFhNmVXj7X8yWeEaXeTsEnvZDBShj/6WJN56y3nAKA20K4PMfqiqISTNkuc9wS239xeefjwuegt0nBwNxjqoa53VqQ9+x5Y6QOpTkWaxZib0JwGxy7uJa9hTwb5XN4FHmc7/bhnMM2Wj76XkArgwNnANgXuU+WZcu66py7WvUYiIit2cSY+qE+I7/qJ9g9BWsJq1VM8saJFL0bxilo3DO2aMh8aedl55/Zq0nn12R7FPp/sl9ST8I0tqTgHC6jBzPwQl9kElDdI=
+  app: tranquil-everglades-36976
+  on:
+    repo: jmpainter/blog-api-mongoose
+    branch: feature/tests
