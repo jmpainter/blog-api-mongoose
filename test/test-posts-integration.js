@@ -6,6 +6,7 @@ const faker = require('faker');
 const mongoose = require('mongoose');
 
 const expect = chai.expect;
+chai.use(require('chai-datetime'));
 
 const { Post } = require('../models');
 const { app, runServer, closeServer } = require('../server');
@@ -90,12 +91,87 @@ describe('Blog Posts API tests', function() {
           expect(post.id).to.equal(resPost.id);
           expect(post.title).to.equal(resPost.title);
           expect(post.author).to.deep.equal(resPost.author);
+          expect(post.content).to.equal(resPost.content);
           expect(post.created).to.equal(resPost.created);
         });
     });
   });
 
-  // describe('POST endpoint', function() {
+  describe('POST endpoint', function() {
+    it('should add a new post', function () {
 
-  // });
+      const newPost = generatePostData();
+
+      return chai.request(app)
+        .post('/posts')
+        .send(newPost)
+        .then(function(res) {
+          expect(res).to.have.status(201);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body).to.include.keys(
+            'id', 'title', 'author', 'content', 'created');
+          expect(res.body.title).to.equal(newPost.title);
+          expect(res.body.author).to.equal(newPost.author.firstName + ' ' + newPost.author.lastName);
+          expect(res.body.content).to.equal(newPost.content);
+          expect(new Date(res.body.created)).to.equalDate(new Date(newPost.created));
+          return Post.findById(res.body.id);
+        })
+        .then(function(post) {
+          expect(post.title).to.equal(newPost.title);
+          expect(post.author.firstName).to.equal(newPost.author.firstName);
+          expect(post.author.lastName).to.equal(newPost.author.lastName);
+          expect(post.content).to.equal(newPost.content);
+          expect(new Date(post.created)).to.equalDate(new Date(newPost.created));
+        });
+    });
+  });
+
+  describe('PUT endpoint', function() {
+    it('should upate fields that are sent', function() {
+      const updateData = {
+        title: 'New Title',
+        content: 'New Content'
+      };
+
+      return Post
+        .findOne()
+        .then(function (post) {
+          updateData.id = post.id;
+
+          return chai.request(app)
+            .put(`/posts/${post.id}`)
+            .send(updateData)
+        })
+        .then(function (res) {
+          expect(res).to.have.status(200);
+
+          return Post.findById(updateData.id);
+        })
+        .then(function(post) {
+          expect(post.title).to.equal(updateData.title);
+          expect(post.content).to.equal(updateData.content);
+        });
+    });
+  });
+
+  describe('DELETE endpoint', function() {
+    it('should delete a post by id', function() {
+      let post;
+
+      return Post
+        .findOne()
+        .then(function(foundPost) {
+          post = foundPost;
+          return chai.request(app).delete(`/posts/${post.id}`);
+        })
+        .then(function (res) {
+          expect(res).to.have.status(204);
+          return Post.findById(post.id);
+        })
+        .then(function (post) {
+          expect(post).to.be.null;
+        });
+    });
+  });
 });
