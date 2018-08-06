@@ -8,33 +8,52 @@ const mongoose = require('mongoose');
 const expect = chai.expect;
 chai.use(require('chai-datetime'));
 
-const { Post } = require('../models');
+const { Post, Author } = require('../models');
 const { app, runServer, closeServer } = require('../server');
 const { TEST_DATABASE_URL } = require('../config');
 
 chai.use(chaiHttp);
 
+let testAuthor = {};
+
 function seedPostData() {
-  console.log('Seeding Post Data...');
-  const seedData = [];
-  for(let i = 0; i < 10; i++) {
-    seedData.push(generatePostData());
+  console.log('Seeding Database...');
+  const seedPostData = [];
+  const seedAuthorData = [];
+
+  for(let i = 0; i < 3; i++) {
+    seedAuthorData.push(generateAuthorData());
   }
-  return Post.insertMany(seedData);
+  return Author.insertMany(seedAuthorData)
+    .then(data => {
+      testAuthor = data[0];
+      for(let i = 0; i < 10; i++) {
+        seedPostData.push(generatePostData(testAuthor._id));
+      }
+      return Post.insertMany(seedPostData);
+    });
 }
 
-function generatePostData() {
+function generatePostData(author_id) {
   const newPost =  {
     title: faker.random.words(3),
-    author: {
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName()
-    },
+    author: author_id,
     content: faker.lorem.sentences(),
-    created: faker.date.recent()
+    created: faker.date.recent(),
+    comments: []
   };
   return newPost;
 }
+
+function generateAuthorData() {
+  const newAuthor =  {
+    firstName: faker.name.firstName(),
+    lastName: faker.name.lastName(),
+    userName: faker.internet.userName()
+  };
+  return newAuthor;
+}
+
 
 function tearDownDb() {
   console.warn('Deleting database...');
@@ -60,11 +79,12 @@ describe('Blog Posts API tests', function() {
           result = res;
           expect(result).to.have.status(200);
           // otherwise our db seeding didn't work
-          expect(result.body.posts).to.have.lengthOf.at.least(1);
+          console.log('result.body: ' + result.body);
+          expect(result.body).to.have.lengthOf.at.least(1);
           return Post.count();
         })
         .then(function(count) {
-          expect(result.body.posts).to.have.lengthOf(count);
+          expect(result.body).to.have.lengthOf(count);
         });
     });
 
@@ -76,15 +96,15 @@ describe('Blog Posts API tests', function() {
         then(function(res) {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
-          expect(res.body.posts).to.be.a('array');
-          expect(res.body.posts).to.have.length.at.least(1);
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length.at.least(1);
 
-          res.body.posts.forEach(function(post) {
+          res.body.forEach(function(post) {
             expect(post).to.be.a('object');
             expect(post).to.include.keys(
-              'id', 'title', 'author', 'content', 'created');
+              'id', 'title', 'author', 'content');
           });
-          resPost = res.body.posts[0];
+          resPost = res.body[0];
           return Post.findById(resPost.id);
         })
         .then(function(post) {
@@ -100,7 +120,7 @@ describe('Blog Posts API tests', function() {
   describe('POST endpoint', function() {
     it('should add a new post', function () {
 
-      const newPost = generatePostData();
+      const newPost = generatePostData(testAuthor._id);
 
       return chai.request(app)
         .post('/posts')
@@ -110,19 +130,17 @@ describe('Blog Posts API tests', function() {
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
           expect(res.body).to.include.keys(
-            'id', 'title', 'author', 'content', 'created');
+            'id', 'title', 'author', 'content');
           expect(res.body.title).to.equal(newPost.title);
-          expect(res.body.author).to.equal(newPost.author.firstName + ' ' + newPost.author.lastName);
+          expect(res.body.author).to.equal(testAuthor.firstName + ' ' + testAuthor.lastName);
           expect(res.body.content).to.equal(newPost.content);
-          expect(new Date(res.body.created)).to.equalDate(new Date(newPost.created));
           return Post.findById(res.body.id);
         })
         .then(function(post) {
           expect(post.title).to.equal(newPost.title);
-          expect(post.author.firstName).to.equal(newPost.author.firstName);
-          expect(post.author.lastName).to.equal(newPost.author.lastName);
+          expect(post.author.firstName).to.equal(testAuthor.firstName);
+          expect(post.author.lastName).to.equal(testAuthor.lastName);
           expect(post.content).to.equal(newPost.content);
-          expect(new Date(post.created)).to.equalDate(new Date(newPost.created));
         });
     });
   });
@@ -144,7 +162,7 @@ describe('Blog Posts API tests', function() {
             .send(updateData)
         })
         .then(function (res) {
-          expect(res).to.have.status(200);
+          expect(res).to.have.status(201);
 
           return Post.findById(updateData.id);
         })

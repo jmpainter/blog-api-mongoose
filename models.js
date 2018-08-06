@@ -19,7 +19,8 @@ var postSchema = mongoose.Schema({
   title: 'string',
   content: 'string',
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
-  comments: [commentSchema]
+  comments: [commentSchema],
+  created: { type: Date, default: Date.now }
 });
 
 postSchema.pre('find', function(next) {
@@ -49,4 +50,4 @@ postSchema.methods.serialize = function() {
 var Author = mongoose.model('Author', authorSchema);
 const Post = mongoose.model('Post', postSchema);
 
-module.exports = {Author, Post};
+module.exports = { Author, Post };
